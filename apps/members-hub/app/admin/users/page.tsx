@@ -7,7 +7,6 @@ import type { TeamMember } from "@/lib/types"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/table"
-import { Badge } from "@workspace/ui/components/badge"
 import {
   Dialog,
   DialogContent,

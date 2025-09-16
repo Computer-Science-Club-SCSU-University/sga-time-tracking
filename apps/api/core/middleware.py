@@ -115,14 +115,38 @@ class IPRestrictionMiddleware(MiddlewareMixin):
         if not self._is_clock_app_request(request):
             return None
         
-        # Get client IP - avoid trusting X-Forwarded-For unless behind trusted proxy
-        ip = request.META.get('REMOTE_ADDR')
+        # Get client IP using the same method as IP check endpoint
+        ip = self._get_client_ip(request)
+        
+        # Debug logging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"IP Restriction Check - Path: {request.path}")
+        logger.info(f"IP Restriction Check - Detected IP: {ip}")
+        logger.info(f"IP Restriction Check - REMOTE_ADDR: {request.META.get('REMOTE_ADDR')}")
+        logger.info(f"IP Restriction Check - X-Forwarded-For: {request.META.get('HTTP_X_FORWARDED_FOR')}")
+        logger.info(f"IP Restriction Check - Origin: {request.META.get('HTTP_ORIGIN')}")
+        logger.info(f"IP Restriction Check - X-App-Type: {request.META.get('HTTP_X_APP_TYPE')}")
         
         # Check if IP is allowed for the clock app
-        if not self._is_ip_allowed(ip):
+        is_allowed = self._is_ip_allowed(ip)
+        logger.info(f"IP Restriction Check - Is IP {ip} allowed: {is_allowed}")
+        
+        if not is_allowed:
+            # List all allowed IPs for debugging
+            from .models import AllowedIP
+            allowed_ips = list(AllowedIP.objects.values_list('ip_address', flat=True))
+            logger.warning(f"IP Restriction Check - Allowed IPs in database: {allowed_ips}")
+            
             return JsonResponse({
                 'error': 'Access denied',
-                'message': 'Your IP address is not authorized to access the clock app'
+                'message': f'Your IP address {ip} is not authorized to access the clock app. Contact admin to add this IP.',
+                'debug_info': {
+                    'detected_ip': ip,
+                    'remote_addr': request.META.get('REMOTE_ADDR'),
+                    'x_forwarded_for': request.META.get('HTTP_X_FORWARDED_FOR'),
+                    'allowed_ips': allowed_ips
+                }
             }, status=403)
         
         # Store IP in request for later use
@@ -162,6 +186,17 @@ class IPRestrictionMiddleware(MiddlewareMixin):
         
         return is_clock
     
+    def _get_client_ip(self, request):
+        """Get the real client IP address (same method as IP check endpoint)"""
+        # Check for forwarded headers first (for proxy setups)
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            # Take the first IP in the list
+            return x_forwarded_for.split(',')[0].strip()
+        
+        # Fall back to REMOTE_ADDR
+        return request.META.get('REMOTE_ADDR', '127.0.0.1')
+    
     def _is_ip_allowed(self, ip):
         """Check if the IP is in the allowed list"""
         # Always allow localhost
@@ -169,6 +204,7 @@ class IPRestrictionMiddleware(MiddlewareMixin):
             return True
         
         # Check database for allowed IPs
+        from .models import AllowedIP
         return AllowedIP.objects.filter(ip_address=ip).exists()
 
 

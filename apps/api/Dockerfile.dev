@@ -38,32 +38,3 @@ EXPOSE 8000
 
 # Default command for development
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
-# Production stage (for future use)
-FROM base as production
-
-# Install production dependencies
-RUN pip install --no-cache-dir -r requirements/production.txt
-
-# Copy project
-COPY . .
-
-# Set production environment
-ENV DJANGO_ENV=production
-
-# Create static and media directories
-RUN mkdir -p /app/staticfiles /app/media
-
-# Collect static files (with minimal settings for collectstatic)
-ENV DJANGO_SECRET_KEY=temp-key-for-collectstatic
-RUN python manage.py collectstatic --noinput --clear
-
-# Create a non-root user
-RUN useradd --create-home --shell /bin/bash app && chown -R app:app /app
-USER app
-
-# Expose port
-EXPOSE 8000
-
-# Production command (Railway will provide PORT environment variable)
-CMD sh -c "gunicorn --bind 0.0.0.0:${PORT:-8000} time_tracking_backend.wsgi:application"

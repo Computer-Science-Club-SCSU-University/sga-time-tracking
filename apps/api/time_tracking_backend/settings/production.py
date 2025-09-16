@@ -9,6 +9,10 @@ from .base import *
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = True
+SECURE_REDIRECT_EXEMPT = [r"^health/?$"]
+
 # Allowed hosts - Railway and custom domains
 ALLOWED_HOSTS = []
 
@@ -21,6 +25,9 @@ if allowed_hosts_env:
 railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN')
 if railway_domain:
     ALLOWED_HOSTS.append(railway_domain)
+
+# Railway health check domain
+ALLOWED_HOSTS.append('healthcheck.railway.app')
 
 # Fallback if no hosts specified
 if not ALLOWED_HOSTS:
@@ -60,19 +67,24 @@ WHITENOISE_AUTOREFRESH = False
 # Production CORS settings
 CORS_ALLOWED_ORIGINS = []
 
+# Debug logging for CORS configuration
+import logging
+logger = logging.getLogger(__name__)
+
 # Parse production frontend URLs from environment
 frontend_urls_env = os.getenv('CORS_ALLOWED_ORIGINS', '')
 if frontend_urls_env:
     CORS_ALLOWED_ORIGINS = [url.strip() for url in frontend_urls_env.split(',') if url.strip()]
 
-# Add Railway frontend domains if available
-clock_kiosk_url = os.getenv('CLOCK_KIOSK_URL')
-members_hub_url = os.getenv('MEMBERS_HUB_URL')
-
-if clock_kiosk_url:
-    CORS_ALLOWED_ORIGINS.append(clock_kiosk_url)
-if members_hub_url:
-    CORS_ALLOWED_ORIGINS.append(members_hub_url)
+# Fallback: If no CORS origins are configured, allow the known Railway domains
+if not CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS = [
+        'https://clock-kiosk-production.up.railway.app',
+        'https://members-hub-production.up.railway.app'
+    ]
+    logger.warning(f"No CORS origins found in env vars, using fallback: {CORS_ALLOWED_ORIGINS}")
+else:
+    logger.info(f"Using CORS origins from environment: {CORS_ALLOWED_ORIGINS}")
 
 # Session security for production
 SESSION_COOKIE_SECURE = True

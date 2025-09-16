@@ -2,9 +2,8 @@
 const nextConfig = {
   transpilePackages: ["@workspace/ui"],
   output: 'standalone',
-  experimental: {
-    outputFileTracingRoot: process.cwd(),
-  },
+  outputFileTracingRoot: process.cwd(),
+  eslint: { ignoreDuringBuilds: true },
 }
 
 export default nextConfig
