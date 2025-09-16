@@ -10,7 +10,4 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 [environments.production]
-variables = { 
-  NODE_ENV = "production",
-  NEXT_PUBLIC_API_URL = "https://api-production-ac16.up.railway.app/api"
-}
+variables = { NODE_ENV = "production" }
