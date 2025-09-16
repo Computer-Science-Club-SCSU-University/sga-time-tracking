@@ -34,7 +34,7 @@ if railway_domain:
 
 if not ALLOWED_HOSTS:
     logger.warning("ALLOWED_HOSTS is empty; consider setting DJANGO_ALLOWED_HOSTS")
-    ALLOWED_HOSTS = [".up.railway.app"]
+    ALLOWED_HOSTS = [".up.railway.app", "healthcheck.railway.app"]
 
 # ---- Database
 DATABASES = {
