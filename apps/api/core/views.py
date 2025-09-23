@@ -148,6 +148,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('full_name')
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]  # Only admins can manage users
+    pagination_class = None
 
 
 class TimeLogViewSet(viewsets.ModelViewSet):
@@ -770,6 +771,7 @@ class CommitteeViewSet(viewsets.ModelViewSet):
     queryset = Committee.objects.all().order_by('name')
     serializer_class = CommitteeSerializer
     permission_classes = [IsAdmin]  # Only admins can manage committees
+    pagination_class = None
     
     def get_serializer_class(self):
         """Use different serializers for different actions"""
