@@ -64,15 +64,24 @@ csrf_env = os.getenv("CSRF_TRUSTED_ORIGINS", "")
 if csrf_env:
     CSRF_TRUSTED_ORIGINS = [u.strip() for u in csrf_env.split(",") if u.strip()]
 
+CSRF_COOKIE_SAMESITE = "None"
+
 # ---- Sessions
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", "3600"))
 SESSION_EXPIRE_AT_BROWSER_CLOSE = os.getenv("SESSION_EXPIRE_AT_BROWSER_CLOSE", "True").lower() == "true"
 
-CLOCK_APP_SESSION_CONFIG.update({"SESSION_COOKIE_SECURE": True})
-HUB_APP_SESSION_CONFIG.update({"SESSION_COOKIE_SECURE": True})
+CLOCK_APP_SESSION_CONFIG.update({
+    "SESSION_COOKIE_SECURE": True,
+    "SESSION_COOKIE_SAMESITE": "None"
+})
+
+HUB_APP_SESSION_CONFIG.update({
+    "SESSION_COOKIE_SECURE": True,
+    "SESSION_COOKIE_SAMESITE": "None",
+})
 
 # ---- Logging
 LOGGING = {
